@@ -38,6 +38,30 @@ docker run -d \
   rss-to-gotosocial
 ```
 
+### Running with Docker Compose
+
+Create a `docker-compose.yml` file like this:
+
+```yaml
+services:
+  rss-to-gotosocial:
+    image: ghcr.io/maxbengtzen/rss-to-gotosocial:latest
+    environment:
+      - FEED_URL=https://example.com/rss.xml
+      - INSTANCE_URL=https://social.example.com
+      - ACCESS_TOKEN=your-access-token
+      # - CHECK_INTERVAL=300  # Optional
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+```
+
+Then start the service:
+
+```sh
+docker compose up -d
+```
+
 ### Running Locally
 
 Install dependencies:
