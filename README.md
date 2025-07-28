@@ -80,7 +80,7 @@ To process the feed(s):
 
 ```sh
 python poster.py --db poster.sqlite --run
-
+```
 
 ## Database
 
