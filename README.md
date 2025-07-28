@@ -70,16 +70,22 @@ Install dependencies:
 pip install Mastodon.py feedparser
 ```
 
-Then run:
+To add a feed:
 
 ```sh
-python poster.py
+python poster.py --db poster.sqlite --save --feed-url "https://example.com/feed.rss" --instance-url "https://socail.example.com" --access-token-promt
 ```
+
+To process the feed(s):
+
+```sh
+python poster.py --db poster.sqlite --run
+
 
 ## Database
 
-The application stores posted entry IDs in a SQLite database at `/data/posted_ids.db`.  
-If you use Docker, map a local directory to `/data` to persist the database.
+The application stores posted entry IDs in a SQLite database at the given path.
+The access tokens are stored unencrypted. Keep the database save...
 
 ## License
 
