@@ -11,7 +11,6 @@ from getpass import getpass
 from mastodon import Mastodon
 from pprint import pprint
 
-# https://github.com/maxbengtzen/rss-to-gotosocial/blob/main/poster.py
 
 def get_args():
     parser = argparse.ArgumentParser(description='Manage RSS feeds for cross-posting')
@@ -30,6 +29,9 @@ def get_args():
     parser.add_argument('--access-token-promt', action='store_true', help='Prompt for access token')
     parser.add_argument('--max-age-days', type=int, help='Maximum post age in days. Default 30')
     parser.add_argument('--toot-format', help='Format string. Default: {title}\\n\\n{link}\\n')
+
+    # Feed parameters for run
+    parser.add_argument('--max-posts', type=int, help='Maximum post to post. Default all', default=0)
 
     args = parser.parse_args()
 
@@ -110,13 +112,13 @@ def save_feed(args):
         db.commit()
         logger.info(f"Updated feed with ID {args.feed_id}")
 
-def run():
+def run(args):
     db.row_factory = sqlite3.Row
     c = db.execute("SELECT * FROM feeds")
     for row in c:
         logger.info(f"Running feed: {row['id']}, URL: {row['url']}, Instance: {row['instance_url']}, Max Age: {row['max_post_age_days']} days, Toot Format: {row['toot_format']}")
         mastodon = get_mastodon(row['instance_url'], row['access_token'])
-        process_feed(mastodon, row['url'], row['max_post_age_days'], row['toot_format'])
+        process_feed(args, mastodon, row['url'], row['max_post_age_days'], row['toot_format'])
 
 
 def get_mastodon(instance_url, access_token):
@@ -155,20 +157,24 @@ def get_tag_list(tags):
 
     return tag_string
 
-def process_feed(mastodon, url, max_age, toot_format):
-    logger.info("Checking RSS feed: %s", FEED_URL)
-    feed = parse(FEED_URL)
+def process_feed(args, mastodon, url, max_age, toot_format):
+    logger.info("Checking RSS feed: %s", url)
+    feed = parse(url)
     if not feed.entries:
         logger.warning("No entries in RSS feed.")
         return
+    feed.entries.reverse()
 
+    count_posted = 0
     for entry in feed.entries:
+        published = datetime(*entry.published_parsed[:6])
         if check_id_posted(entry.id):
-            logger.info("Already posted (RSS ID %s). Skipping: %s", entry.id, entry.title)
-        elif datetime(*entry.published_parsed[:6]) < datetime.now() - timedelta(days=max_age):
-            logger.info("Old post (RSS ID %s). Skipping: %s", entry.id, entry.title)
-        else:
+            logger.info("Already posted from %s (RSS ID %s). Skipping: %s", published, entry.id, entry.title)
+        elif published < datetime.now() - timedelta(days=max_age):
+            logger.info("Old post from %s (RSS ID %s). Skipping: %s", published, entry.id, entry.title)
+        elif args.max_posts == 0 or count_posted < args.max_posts:
             post(mastodon, entry, toot_format)
+            count_posted += 1
 
 def post(mastodon, entry, toot_format):
     content = toot_format.format(
@@ -180,6 +186,7 @@ def post(mastodon, entry, toot_format):
     try:
         mastodon.toot(content.strip())
         logger.info("Posted new article: %s", entry.title)
+        logger.info(content.strip())
         save_posted_id(entry.id)
     except Exception as e:
         logger.error("Failed to post %s: %s", entry.title, e)
@@ -196,6 +203,6 @@ if __name__ == "__main__":
     elif args.save:
         save_feed(args)
     elif args.run:
-        run()
+        run(args)
 
     db.close()

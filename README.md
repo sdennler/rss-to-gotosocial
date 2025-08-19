@@ -17,15 +17,6 @@ This project is a simple Python application that reads an RSS feed and automatic
 
 ## Usage
 
-### Environment Variables
-
-Set the following environment variables:
-
-- `FEED_URL` – The URL of the RSS feed to monitor
-- `INSTANCE_URL` – The base URL of your Mastodon/GoToSocial instance (e.g., `https://social.example.com`)
-- `ACCESS_TOKEN` – Your Mastodon/GoToSocial access token
-- `CHECK_INTERVAL` – (Optional) How often to check the feed, in seconds (default: 300)
-
 ### Running with Docker
 
 ```sh
@@ -73,7 +64,7 @@ pip install Mastodon.py feedparser
 To add a feed:
 
 ```sh
-python poster.py --db poster.sqlite --save --feed-url "https://example.com/feed.rss" --instance-url "https://socail.example.com" --access-token-promt
+python poster.py --db poster.sqlite --save --feed-url "https://example.com/feed.rss" --instance-url "https://social.example.com" --access-token-promt
 ```
 
 To process the feed(s):
@@ -85,7 +76,15 @@ python poster.py --db poster.sqlite --run
 ## Database
 
 The application stores posted entry IDs in a SQLite database at the given path.
-The access tokens are stored unencrypted. Keep the database save...
+The access tokens are stored unencrypted. Keep the database save... At least `chmod go-rw poster.sqlite`
+
+## Get access token from GoToSocial
+* Create a new Application
+** Any name
+** Redirect URL shown above the form
+** Scopes: read write
+** Save and open the Application Details
+** Request Access Tocken
 
 ## License
 
