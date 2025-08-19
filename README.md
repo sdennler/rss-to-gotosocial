@@ -79,12 +79,12 @@ The application stores posted entry IDs in a SQLite database at the given path.
 The access tokens are stored unencrypted. Keep the database save... At least `chmod go-rw poster.sqlite`
 
 ## Get access token from GoToSocial
-* Create a new Application
-** Any name
-** Redirect URL shown above the form
-** Scopes: read write
-** Save and open the Application Details
-** Request Access Tocken
+- Create a new Application
+  - Any name
+  - Redirect URL shown above the form
+  - Scopes: read write
+- Save and open the Application Details
+- Request Access Tocken
 
 ## License
 
