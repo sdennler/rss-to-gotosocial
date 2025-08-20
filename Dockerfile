@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-RUN pip install --no-cache-dir Mastodon.py feedparser
+RUN pip install --no-cache-dir Mastodon.py feedparser bs4
 
 # Create /data and set permissions
 RUN mkdir -p /data && chmod 777 /data

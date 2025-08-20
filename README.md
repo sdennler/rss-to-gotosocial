@@ -22,35 +22,18 @@ This project is a simple Python application that reads an RSS feed and automatic
 ```sh
 docker build -t rss-to-gotosocial .
 docker run -d \
-  -e FEED_URL="https://example.com/rss.xml" \
-  -e INSTANCE_URL="https://social.example.com" \
-  -e ACCESS_TOKEN="your-access-token" \
   -v $(pwd)/data:/data \
-  rss-to-gotosocial
+  rss-to-gotosocial --db /data/poster.sqlite --run
 ```
 
-### Running with Docker Compose
-
-Create a `docker-compose.yml` file like this:
-
-```yaml
-services:
-  rss-to-gotosocial:
-    image: ghcr.io/maxbengtzen/rss-to-gotosocial:latest
-    environment:
-      - FEED_URL=https://example.com/rss.xml
-      - INSTANCE_URL=https://social.example.com
-      - ACCESS_TOKEN=your-access-token
-      # - CHECK_INTERVAL=300  # Optional
-    volumes:
-      - ./data:/data
-    restart: unless-stopped
-```
-
-Then start the service:
+### Running with Docker for development
 
 ```sh
-docker compose up -d
+docker build -t rss-to-gotosocial .
+docker run -d \
+  -v $(pwd)/data:/data \
+  -v $(pwd)/poster.py:/app/poster.py \
+  rss-to-gotosocial --db /data/poster.sqlite --run
 ```
 
 ### Running Locally
@@ -58,7 +41,7 @@ docker compose up -d
 Install dependencies:
 
 ```sh
-pip install Mastodon.py feedparser
+pip install Mastodon.py feedparser bs4
 ```
 
 To add a feed:

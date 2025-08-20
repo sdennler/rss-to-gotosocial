@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from feedparser import parse
 from getpass import getpass
 from mastodon import Mastodon
+from bs4 import BeautifulSoup
 from pprint import pprint
 
 
@@ -32,6 +33,7 @@ def get_args():
 
     # Feed parameters for run
     parser.add_argument('--max-posts', type=int, help='Maximum post to post. Default all', default=0)
+    parser.add_argument('--dry-posts', action='store_true', help='Dry run. Do not actually post.')
 
     args = parser.parse_args()
 
@@ -173,18 +175,22 @@ def process_feed(args, mastodon, url, max_age, toot_format):
         elif published < datetime.now() - timedelta(days=max_age):
             logger.info("Old post from %s (RSS ID %s). Skipping: %s", published, entry.id, entry.title)
         elif args.max_posts == 0 or count_posted < args.max_posts:
-            post(mastodon, entry, toot_format)
+            post(args, mastodon, entry, toot_format)
             count_posted += 1
 
-def post(mastodon, entry, toot_format):
+def post(args, mastodon, entry, toot_format):
+    summary = BeautifulSoup(entry.summary, features="html.parser").get_text().partition('\n')[0]
+
     content = toot_format.format(
         title=entry.title,
-        link=entry.link
+        link=entry.link,
+        summary=summary,
     ).replace('\\n', '\n')
     content += get_tag_list(entry.tags)
 
     try:
-        mastodon.toot(content.strip())
+        if not args.dry_posts:
+            mastodon.toot(content.strip())
         logger.info("Posted new article: %s", entry.title)
         logger.info(content.strip())
         save_posted_id(entry.id)
